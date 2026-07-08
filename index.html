@@ -278,7 +278,7 @@ footer a:hover{color:var(--creme)}
     </div>
     <div class="dial-card reveal">
       <div class="dial">
-        <span class="temp">21<small>°C</small></span>
+        <span class="temp"><span id="tempVal">21</span><small>°C</small></span>
         <span class="lbl"><b>Chauffage</b> · <span class="f">Climatisation</span></span>
       </div>
       <div class="tel-lbl">Panne ou projet ?</div>
@@ -544,6 +544,22 @@ document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 // jour en cours surligné dans les horaires
 const auj=new Date().getDay();
 document.querySelectorAll('#horaires li').forEach(li=>{if(+li.dataset.jour===auj)li.classList.add('auj')});
+// le cadran chauffe : la température monte de 7° à 21° quand il entre à l'écran
+const tempVal=document.getElementById('tempVal');
+if(tempVal&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  tempVal.textContent='7';
+  const ioTemp=new IntersectionObserver(es=>es.forEach(e=>{
+    if(!e.isIntersecting)return;
+    ioTemp.disconnect();
+    const debut=performance.now(),duree=1800;
+    (function tic(t){
+      const p=Math.min((t-debut)/duree,1),e2=1-Math.pow(1-p,3);
+      tempVal.textContent=Math.round(7+e2*14);
+      if(p<1)requestAnimationFrame(tic);
+    })(debut);
+  }),{threshold:.4});
+  ioTemp.observe(tempVal);
+}
 // formulaire : maquette de démonstration
 document.getElementById('devisForm').addEventListener('submit',e=>{
   e.preventDefault();
